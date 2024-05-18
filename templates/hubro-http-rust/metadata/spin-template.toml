@@ -1,0 +1,8 @@
+manifest_version = "1"
+id = "hubro-http-rust"
+description = "Simple Hubro plugin with HTTP handler using Rust"
+tags = ["http", "hubro", "rust"]
+
+[parameters]
+project-name = { type = "string",  prompt = "Project name", default = "hubro-http-plugin" }
+project-description = { type = "string",  prompt = "Description", default = "" }
