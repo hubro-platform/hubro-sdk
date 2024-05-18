@@ -3,6 +3,7 @@ use chrono::SecondsFormat::Millis;
 use fhirbolt::model::r4b::resources::{Bundle, BundleEntry, ObservationEffective};
 use fhirbolt::model::r4b::{Resource, types};
 use fhirbolt::model::r4b::types::{Code, Coding, Period, Uri};
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use spin_sdk::http::Method::{Post};
 
@@ -19,8 +20,13 @@ pub struct Client {
     pub base_url: Option<String>,
 }
 
-impl Client {
+#[derive(Serialize, Deserialize)]
+struct AnonymizedUser {
+    fhir_user: Option<String>,
+    fhir_token: Option<String>
+}
 
+impl Client {
     const HUBRO_SERVICE_URL: &'static str = "http://hubro-api.hubro.svc.cluster.local";
 
     pub fn generate_bundle() -> anyhow::Result<Bundle> {
@@ -106,37 +112,35 @@ impl Client {
         Ok(be)
     }
 
-    pub async fn send_bundle(&self, bearer: &str, body: Option<Value>) -> Result<(), anyhow::Error> {
-        let res: http::Response<Vec<u8>>;
-        match self.base_url {
+    pub fn get_target_url(&self) -> Result<String, anyhow::Error> {
+        match self.base_url.to_owned() {
             None => {
-                res = spin_sdk::http::send(
-                    spin_sdk::http::Request::builder()
-                        .method(Post)
-                        .header("Accept", "application/json")
-                        .header("Authorization", format!("Bearer {bearer}"))
-                        .uri(format!("{}/plugins/post_data", Client::HUBRO_SERVICE_URL))
-                        .body(Some(body.unwrap().to_string()))
-                        .build(),
-                ).await?;
+                Ok(Client::HUBRO_SERVICE_URL.to_string())
             }
-            Some(_) => {
-                res = spin_sdk::http::send(
-                    http::Request::builder()
-                        .method("POST")
-                        .header("Accept", "application/json")
-                        .header("Authorization", format!("Bearer {bearer}"))
-                        .header("Content-type", "application/json")
-                        .uri(format!("{}/plugins/post_data", self.base_url.to_owned().unwrap()))
-                        .body(Some(body.unwrap().to_string()))?
-                ).await?;
+            Some(val) => {
+                Ok(val)
             }
         }
+    }
+
+    pub async fn send_bundle(&self, bearer: &str, body: Option<Value>) -> Result<(), anyhow::Error> {
+        let target_url = self.get_target_url()?;
+
+        let res: http::Response<Vec<u8>> = spin_sdk::http::send(
+            http::Request::builder()
+                .method("POST")
+                .header("Accept", "application/json")
+                .header("Authorization", format!("Bearer {bearer}"))
+                .header("Content-type", "application/json")
+                .uri(format!("{target_url}/plugins/post_data"))
+                .body(Some(body.unwrap().to_string()))?
+        ).await?;
 
         Ok(())
     }
 
     pub async fn anonymize_user(&self, user: &str, study_id: &str) -> Result<(String, String), anyhow::Error> {
+        let target_url = self.get_target_url()?;
         let data = json!({
           "user": user,
           "study": study_id
@@ -146,11 +150,11 @@ impl Client {
                 .method("POST")
                 .header("Accept", "application/json")
                 .header("Content-type", "application/json")
-                .uri(format!("{}/plugins/anonymize", self.base_url.to_owned().unwrap()))
+                .uri(format!("{target_url}/plugins/anonymize"))
                 .body(Some(data.to_string()))?
         ).await?;
-        let body = std::str::from_utf8(res.body()).unwrap();
-        let data: Value = serde_json::from_str(body)?;
-        Ok((data["fhir_user"].as_str().unwrap().to_string(), data["fhir_token"].as_str().unwrap().to_string()))
+        let body = std::str::from_utf8(res.body())?;
+        let data: AnonymizedUser = serde_json::from_str(body)?;
+        Ok((data.fhir_user.unwrap(), data.fhir_token.unwrap()))
     }
 }
