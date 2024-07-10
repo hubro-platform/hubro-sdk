@@ -9,7 +9,7 @@ async fn entrypoint(req: Request) -> Response {
     match req.method() {
         Method::Get => {
             match req.path() {
-                hubro_sdk::plugin::INFO_ENDPOINT => hubro_sdk::plugin::About::generate_info("Test Plugin", "This is a sample Hubro plugin", "https://github.com/sample-account/hubro-plugin", "0.1.0", "").await.into_response(),
+                hubro_sdk::plugin::INFO_ENDPOINT => hubro_sdk::plugin::About::generate_info("test", "Test Plugin", "This is a sample Hubro plugin", "https://github.com/sample-account/hubro-plugin", "0.1.0", "", None).await.into_response(),
                 _ => { Response::new(200, "") }
             }
         }

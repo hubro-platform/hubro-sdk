@@ -47,6 +47,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "bitflags"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -356,9 +362,10 @@ dependencies = [
 
 [[package]]
 name = "hubro-sdk"
-version = "0.3.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "bytes",
  "chrono",
  "fhirbolt",
@@ -368,6 +375,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "spin-sdk",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -540,7 +548,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e228dbe2aebd82de09c914fe28d36d3170ed5192e8d52b9c070ee0794519c2d3"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "getrandom",
  "rand",
  "sha2",

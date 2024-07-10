@@ -1,6 +1,6 @@
 [package]
 name = "hubro-sdk"
-version = "0.3.0"
+version = "0.6.0"
 description = "Hubro Platform SDK crate"
 license = "Apache-2.0"
 edition = "2021"
@@ -16,6 +16,12 @@ chrono = "0.4.24"
 spin-sdk = "2.2.0"
 anyhow = "1.0.83"
 bytes = "1.6.0"
+wasm-bindgen = "0.2.92"
+base64 = "0.22.1"
 
 [lib]
 crate-type = ["cdylib", "lib"]
+
+[features]
+server = []
+mobile = []
