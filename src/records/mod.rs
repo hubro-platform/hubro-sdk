@@ -6,3 +6,7 @@ pub struct StepsRecord {
     pub endTime: String,
     pub count: u32,
 }
+
+impl StepsRecord {
+    pub const IDENTIFIER: i32 = 0;
+}

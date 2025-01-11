@@ -6,3 +6,5 @@ pub mod plugin;
 pub mod signals;
 #[cfg(feature = "mobile")]
 pub mod mobile;
+#[cfg(feature = "mobile")]
+pub mod records;
