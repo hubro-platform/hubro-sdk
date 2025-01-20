@@ -34,39 +34,61 @@ pub struct Mode {
 }
 
 pub fn enabled_mode(name: String, description: Option<String>) -> Result<Mode, anyhow::Error> {
-    Ok(Mode { identifier: "enabled".to_string(), name, description })
+    Ok(Mode {
+        identifier: "enabled".to_string(),
+        name,
+        description,
+    })
 }
 
 pub fn disabled_mode(name: String, description: Option<String>) -> Result<Mode, anyhow::Error> {
-    Ok(Mode { identifier: "disabled".to_string(), name, description })
+    Ok(Mode {
+        identifier: "disabled".to_string(),
+        name,
+        description,
+    })
 }
 
 pub struct About {}
 
 impl About {
-    pub async fn get_base_url() -> String {
+    pub async fn get_base_url() -> Result<String, anyhow::Error> {
         let mut res: http::Response<Vec<u8>> = spin_sdk::http::send(
             http::Request::builder()
                 .method("GET")
                 .uri("http://hubro-release-api-svc.hubro.svc.cluster.local/plugins/base")
                 .body(())?,
-        ).await?;
-        let body = str::from_utf8(res.body()).unwrap();
-        return body.to_string();
+        )
+        .await?;
+        let body = std::str::from_utf8(res.body()).unwrap();
+        return Ok(body.to_string());
     }
 
-    pub async fn get_redirect_url() -> String {
+    pub async fn get_redirect_url(plugin_id: &str) -> Result<String, anyhow::Error> {
         let mut res: http::Response<Vec<u8>> = spin_sdk::http::send(
             http::Request::builder()
                 .method("GET")
-                .uri("http://hubro-release-api-svc.hubro.svc.cluster.local/plugins/redirect")
+                .uri(format!(
+                    "http://hubro-release-api-svc.hubro.svc.cluster.local/plugins/redirect?pluginId={plugin_id}"
+                ))
                 .body(())?,
-        ).await?;
-        let body = str::from_utf8(res.body()).unwrap();
-        return body.to_string();
+        )
+        .await?;
+        let body = std::str::from_utf8(res.body()).unwrap();
+        return Ok(body.to_string());
     }
 
-    pub async fn generate_info(identifier: &str, name: &str, short_description: &str, url: &str, version: &str, icon_url: &str, external_endpoints: Option<Vec<String>>, parameters: Option<Vec<Parameter>>, modes: Option<Vec<Mode>>) -> anyhow::Result<impl IntoResponse> {
+    pub async fn generate_info(
+        identifier: &str,
+        name: &str,
+        short_description: &str,
+        url: &str,
+        version: &str,
+        icon_url: &str,
+        external_endpoints: Option<Vec<String>>,
+        parameters: Option<Vec<Parameter>>,
+        modes: Option<Vec<Mode>>,
+    ) -> anyhow::Result<impl IntoResponse> {
         let plugin_info = PluginInfo {
             identifier: identifier.to_string(),
             name: name.to_string(),
@@ -81,6 +103,7 @@ impl About {
         let j = serde_json::to_string(&plugin_info)?;
 
         Ok(http::Response::builder()
-            .status(http::StatusCode::OK).body(j)?)
+            .status(http::StatusCode::OK)
+            .body(j)?)
     }
 }
