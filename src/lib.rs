@@ -4,7 +4,10 @@ pub mod fhir;
 pub mod plugin;
 #[cfg(feature = "server")]
 pub mod signals;
+#[cfg(feature = "server")]
+pub mod toolbox;
 #[cfg(feature = "mobile")]
 pub mod mobile;
 #[cfg(feature = "mobile")]
 pub mod records;
+
