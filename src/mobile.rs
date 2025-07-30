@@ -10,13 +10,12 @@ use std::mem;
 use std::os::raw::{c_char, c_void};
 
 #[link(wasm_import_module = "hubro_sdk")]
-extern "C" {
+unsafe extern "C" {
     fn get_health_connect_records(record_type: i32, from: i32, to: i32) -> *mut c_char;
     fn get_health_connect_number_of_records(record_type: i32, from: i32, to: i32) -> i32;
     fn print_line(nf_name: *mut c_char);
 }
 
-#[no_mangle]
 pub extern "C" fn allocate(size: usize) -> *mut c_void {
     let mut buf = Vec::with_capacity(size);
     let ptr = buf.as_mut_ptr();
@@ -24,7 +23,6 @@ pub extern "C" fn allocate(size: usize) -> *mut c_void {
     return ptr as *mut c_void;
 }
 
-#[no_mangle]
 pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
     unsafe {
         let _buf = Vec::from_raw_parts(ptr, 0, cap);
@@ -55,17 +53,14 @@ fn fetch_records<T: de::DeserializeOwned + HealthRecord>(record_type: i32, from:
     }
 }
 
-#[no_mangle]
 pub extern "C" fn get_hc_steps_records_count(from: i32, to: i32) -> i32 {
     fetch_records_count(StepsRecord::IDENTIFIER, from, to)
 }
 
-#[no_mangle]
 pub extern "C" fn get_health_records<T: de::DeserializeOwned + HealthRecord>(from: i32, to: i32) -> Vec<T> {
     fetch_records::<T>(T::IDENTIFIER, from, to)
 }
 
-#[no_mangle]
 pub extern "C" fn debug_print_line(output: &str) {
     let size = output.len();
     let ptr = unsafe { allocate(size + 1) as *mut c_char };

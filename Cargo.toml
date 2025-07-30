@@ -1,6 +1,6 @@
 [package]
 name = "hubro-sdk"
-version = "0.8.6"
+version = "0.8.7"
 description = "Hubro Platform SDK crate"
 license = "Apache-2.0"
 edition = "2024"
