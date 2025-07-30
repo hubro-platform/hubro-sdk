@@ -1,19 +1,19 @@
-use std::ffi::{CStr};
+use crate::records::StepsRecord;
+use crate::records::HealthRecord;
+use base64;
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
+use serde::de;
+use serde::{Deserialize, Serialize};
+use std::ffi::CStr;
 use std::mem;
 use std::os::raw::{c_char, c_void};
-use serde::{Deserialize, Serialize};
-use base64;
-use base64::Engine;
-use base64::prelude::BASE64_STANDARD;
-use serde::de;
-use crate::records::StepsRecord;
-
 
 #[link(wasm_import_module = "hubro_sdk")]
 extern "C" {
     fn get_health_connect_records(record_type: i32, from: i32, to: i32) -> *mut c_char;
     fn get_health_connect_number_of_records(record_type: i32, from: i32, to: i32) -> i32;
-    fn println(nf_name: *mut c_char);
+    fn print_line(nf_name: *mut c_char);
 }
 
 #[no_mangle]
@@ -42,8 +42,7 @@ fn fetch_records_count(record_type: i32, from: i32, to: i32) -> i32 {
     s
 }
 
-fn fetch_records<T: de::DeserializeOwned>(record_type: i32, from: i32, to: i32) -> Vec<T>
-{
+fn fetch_records<T: de::DeserializeOwned + HealthRecord>(record_type: i32, from: i32, to: i32) -> Vec<T> {
     if (fetch_records_count(record_type, from, to) > 0) {
         let s = unsafe { get_health_connect_records(record_type, from, to) };
         let subject2 = unsafe { CStr::from_ptr(s).to_bytes().to_vec() };
@@ -56,13 +55,23 @@ fn fetch_records<T: de::DeserializeOwned>(record_type: i32, from: i32, to: i32) 
     }
 }
 
-
 #[no_mangle]
 pub extern "C" fn get_hc_steps_records_count(from: i32, to: i32) -> i32 {
     fetch_records_count(StepsRecord::IDENTIFIER, from, to)
 }
 
 #[no_mangle]
-pub extern "C" fn get_hc_steps_records(from: i32, to: i32) -> Vec<StepsRecord> {
-    fetch_records::<StepsRecord>(StepsRecord::IDENTIFIER, from, to)
+pub extern "C" fn get_health_records<T: de::DeserializeOwned + HealthRecord>(from: i32, to: i32) -> Vec<T> {
+    fetch_records::<T>(T::IDENTIFIER, from, to)
+}
+
+#[no_mangle]
+pub extern "C" fn debug_print_line(output: &str) {
+    let size = output.len();
+    let ptr = unsafe { allocate(size + 1) as *mut c_char };
+    unsafe {
+        std::ptr::copy(output.as_ptr(), ptr as *mut u8, size);
+        *ptr.add(size) = 0;
+        print_line(ptr);
+    }
 }
