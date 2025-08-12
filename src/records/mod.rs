@@ -2,8 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StepsRecord {
+    // #[n(0)]
     pub startTime: String,
+    // #[n(1)]
     pub endTime: String,
+    // #[n(2)]
     pub count: u32,
 }
 

@@ -1,6 +1,8 @@
 use jwt_compact::UntrustedToken;
 use serde::{Deserialize, Serialize};
 use std::str;
+use spin_sdk::http::Method;
+use spin_sdk::http::StatusCode;
 
 const USER_AGENT: &str = "spin-sdk-rust";
 // const SIDECAR_URL: &str = "http://127.0.0.1:8080";
@@ -31,12 +33,12 @@ impl Client {
         imap: &str,
     ) -> Result<String, ()> {
         for _ in 0..100 {
-            let res: http::Response<Vec<u8>> = spin_sdk::http::send(
-                http::Request::builder()
-                    .method("GET")
+            let res: spin_sdk::http::Response = spin_sdk::http::send(
+                spin_sdk::http::Request::builder()
+                    .method(Method::Get)
                     .header("User-Agent", USER_AGENT)
                     .uri(format!("{SIDECAR_URL}{INTERCEPT_OTP_ENDPOINT}?email={email}&password={password}&server={imap}"))
-                    .body(()).unwrap(),
+                    .body(()).build(),
             ).await.unwrap();
             let body = str::from_utf8(res.body()).unwrap();
             if !body.contains("undefined") {

@@ -126,14 +126,14 @@ impl Client {
     pub async fn send_bundle(&self, bearer: &str, body: Option<Value>) -> Result<(), anyhow::Error> {
         let target_url = self.get_target_url()?;
 
-        let res: http::Response<Vec<u8>> = spin_sdk::http::send(
-            http::Request::builder()
-                .method("POST")
+        let res: spin_sdk::http::Response = spin_sdk::http::send(
+            spin_sdk::http::Request::builder()
+                .method(spin_sdk::http::Method::Post)
                 .header("Accept", "application/json")
                 .header("Authorization", format!("Bearer {bearer}"))
                 .header("Content-type", "application/json")
                 .uri(format!("{target_url}/plugins/post_data"))
-                .body(Some(body.unwrap().to_string()))?
+                .body(Some(body.unwrap().to_string())).build()
         ).await?;
 
         Ok(())
@@ -145,13 +145,13 @@ impl Client {
           "user": user,
           "study": study_id
         });
-        let res: http::Response<Vec<u8>> = spin_sdk::http::send(
-            http::Request::builder()
-                .method("POST")
+        let res: spin_sdk::http::Response = spin_sdk::http::send(
+            spin_sdk::http::Request::builder()
+                .method(spin_sdk::http::Method::Post)
                 .header("Accept", "application/json")
                 .header("Content-type", "application/json")
                 .uri(format!("{target_url}/plugins/anonymize"))
-                .body(Some(data.to_string()))?
+                .body(Some(data.to_string())).build()
         ).await?;
         let body = std::str::from_utf8(res.body())?;
         let data: AnonymizedUser = serde_json::from_str(body)?;

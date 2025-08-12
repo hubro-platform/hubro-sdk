@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use spin_sdk::http::IntoResponse;
+use spin_sdk::http::StatusCode;
 
 pub const INFO_ENDPOINT: &str = "/info";
 pub const AUTHORIZE_ENDPOINT: &str = "/authorize";
@@ -53,11 +54,11 @@ pub struct About {}
 
 impl About {
     pub async fn get_base_url() -> Result<String, anyhow::Error> {
-        let mut res: http::Response<Vec<u8>> = spin_sdk::http::send(
-            http::Request::builder()
-                .method("GET")
+        let mut res: spin_sdk::http::Response = spin_sdk::http::send(
+            spin_sdk::http::Request::builder()
+                .method(spin_sdk::http::Method::Get)
                 .uri("http://hubro-release-api-svc.hubro.svc.cluster.local/plugins/base")
-                .body(())?,
+                .body(()).build(),
         )
         .await?;
         let body = std::str::from_utf8(res.body()).unwrap();
@@ -65,13 +66,13 @@ impl About {
     }
 
     pub async fn get_redirect_url(plugin_id: &str) -> Result<String, anyhow::Error> {
-        let mut res: http::Response<Vec<u8>> = spin_sdk::http::send(
-            http::Request::builder()
-                .method("GET")
+        let mut res: spin_sdk::http::Response = spin_sdk::http::send(
+            spin_sdk::http::Request::builder()
+                .method(spin_sdk::http::Method::Get)
                 .uri(format!(
                     "http://hubro-release-api-svc.hubro.svc.cluster.local/plugins/redirect?pluginId={plugin_id}"
                 ))
-                .body(())?,
+                .body(()).build(),
         )
         .await?;
         let body = std::str::from_utf8(res.body()).unwrap();
@@ -102,8 +103,8 @@ impl About {
         };
         let j = serde_json::to_string(&plugin_info)?;
 
-        Ok(http::Response::builder()
-            .status(http::StatusCode::OK)
-            .body(j)?)
+        Ok(spin_sdk::http::Response::builder()
+            .status(200)
+            .body(j).build())
     }
 }
